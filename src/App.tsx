@@ -382,11 +382,7 @@ export default function App() {
                 fontFamily: "'Marcellus', serif",
                 fontSize: 30, lineHeight: 1, color: palette.text,
               }}>V-Tool</div>
-              <div style={{
-                fontSize: 11, fontWeight: 900, letterSpacing: "0.12em",
-                textTransform: "uppercase", color: palette.textSoft,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}>Khmer New Year</div>
+             
             </div>
           </div>
 
@@ -401,7 +397,7 @@ export default function App() {
             fontFamily: "'Plus Jakarta Sans',sans-serif",
           }}>
             <Sparkles size={12} />
-            Cambodian festival theme
+           UID & 2FA Tools
           </span>
         </header>
 

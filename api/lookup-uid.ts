@@ -1,4 +1,4 @@
-import { lookupFacebookUid, normalizeFacebookUrl } from "../lib/facebookUid.ts";
+import { lookupFacebookUid, normalizeFacebookUrl } from "../lib/facebookUid.js";
 
 type ApiRequest = {
   method?: string;
@@ -58,11 +58,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     res.status(200).json({ uid });
   } catch (error: any) {
-    console.error("Vercel lookup error details:", error.response?.status, error.message);
+    const status = error?.status ?? error?.response?.status;
+    console.error("Vercel lookup error details:", status, error.message);
 
-    if (error.response?.status === 400) {
+    if (status === 400) {
       res.status(400).json({
         error: "Facebook rejected the request. Please check if the URL is correct.",
+      });
+      return;
+    }
+
+    if (status === 403 || status === 429) {
+      res.status(502).json({
+        error: "Facebook blocked the lookup request from the server. Please try again later.",
       });
       return;
     }

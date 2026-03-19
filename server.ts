@@ -1,7 +1,7 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
-import { lookupFacebookUid, normalizeFacebookUrl } from "./lib/facebookUid.ts";
+import { lookupFacebookUid, normalizeFacebookUrl } from "./lib/facebookUid.js";
 
 async function startServer() {
   const app = express();
@@ -30,9 +30,13 @@ async function startServer() {
         return res.status(404).json({ error: "Could not find UID. The profile might be private or protected." });
       }
     } catch (error: any) {
-      console.error("Lookup error details:", error.response?.status, error.message);
-      if (error.response?.status === 400) {
+      const status = error?.status ?? error?.response?.status;
+      console.error("Lookup error details:", status, error.message);
+      if (status === 400) {
         return res.status(400).json({ error: "Facebook rejected the request. Please check if the URL is correct." });
+      }
+      if (status === 403 || status === 429) {
+        return res.status(502).json({ error: "Facebook blocked the lookup request from the server. Please try again later." });
       }
       return res.status(500).json({ error: "Failed to fetch profile. Please check the URL and try again." });
     }
