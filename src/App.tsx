@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react";
 import { TOTP } from "totp-generator";
 import {
   ShieldCheck, UserSearch, Copy, RefreshCw,
-  AlertCircle, CheckCircle2, History, Trash2, Lock, Zap, Sparkles,
+  AlertCircle, CheckCircle2, History, Trash2, Lock, X, Zap, Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -54,6 +54,9 @@ const PAWS = [
 ];
 
 export default function App() {
+  const secretInputRef = useRef<HTMLInputElement>(null);
+  const fbUrlInputRef = useRef<HTMLInputElement>(null);
+
   const [secret, setSecret]       = useState("");
   const [code, setCode]           = useState("");
   const [timeLeft, setTimeLeft]   = useState(30);
@@ -98,6 +101,21 @@ export default function App() {
     setTimeout(() => cb(false), 2000);
   };
 
+  const clearSecret = () => {
+    setSecret("");
+    setCode("");
+    setCopied2fa(false);
+    requestAnimationFrame(() => secretInputRef.current?.focus());
+  };
+
+  const clearUidLookup = () => {
+    setFbUrl("");
+    setUid("");
+    setErrorUid("");
+    setCopiedUid(false);
+    requestAnimationFrame(() => fbUrlInputRef.current?.focus());
+  };
+
   const lookupUid = async () => {
     if (!fbUrl) return;
     setLoadingUid(true); setErrorUid(""); setUid("");
@@ -123,7 +141,7 @@ export default function App() {
   };
 
   // ── Shared styles ─────────────────────────────────────────────────────────
-  const card: React.CSSProperties = {
+  const card: CSSProperties = {
     background: `linear-gradient(180deg, ${palette.cardStrong} 0%, ${palette.card} 100%)`,
     border: `1.5px solid ${palette.border}`,
     borderRadius: 28,
@@ -136,19 +154,19 @@ export default function App() {
     overflow: "hidden",
   };
 
-  const sectionLabel: React.CSSProperties = {
+  const sectionLabel: CSSProperties = {
     display: "flex", alignItems: "center", gap: 7,
     fontSize: 10, fontWeight: 900, letterSpacing: "0.18em",
     textTransform: "uppercase", color: palette.textSoft,
     marginBottom: 16, fontFamily: "'Plus Jakarta Sans',sans-serif",
   };
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle: CSSProperties = {
     width: "100%",
     background: palette.input,
     border: `1.5px solid ${palette.border}`,
     borderRadius: 16,
-    padding: "12px 40px 12px 14px",
+    padding: "12px 74px 12px 14px",
     fontFamily: "'Plus Jakarta Sans',sans-serif",
     fontSize: 14,
     color: palette.text,
@@ -157,7 +175,7 @@ export default function App() {
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
   };
 
-  const btnPrimary: React.CSSProperties = {
+  const btnPrimary: CSSProperties = {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
     gap: 6, padding: "12px 18px",
     background: palette.primary,
@@ -170,10 +188,35 @@ export default function App() {
     boxShadow: `0 14px 28px ${palette.primaryShadow}`,
   };
 
-  const microLabel: React.CSSProperties = {
+  const microLabel: CSSProperties = {
     fontSize: 9, fontWeight: 900, letterSpacing: "0.18em",
     textTransform: "uppercase", color: palette.textSoft,
     fontFamily: "'Plus Jakarta Sans',sans-serif",
+  };
+
+  const helperText: CSSProperties = {
+    fontSize: 11,
+    lineHeight: 1.5,
+    color: palette.textSoft,
+    marginBottom: 10,
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+  };
+
+  const inputClearButton: CSSProperties = {
+    position: "absolute",
+    top: "50%",
+    transform: "translateY(-50%)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,
+    height: 24,
+    borderRadius: 999,
+    border: `1px solid ${palette.borderSoft}`,
+    background: "rgba(255,255,255,0.92)",
+    color: palette.textSoft,
+    cursor: "pointer",
+    transition: "transform 0.18s, background 0.18s, color 0.18s",
   };
 
   return (
@@ -284,6 +327,12 @@ export default function App() {
         }
         .btn-icon:hover { background: rgba(255,245,233,0.98); color: ${palette.text}; transform: translateY(-1px); }
 
+        .input-clear:hover {
+          background: rgba(255,244,236,0.98) !important;
+          color: ${palette.ruby} !important;
+          transform: translateY(-50%) scale(1.04) !important;
+        }
+
         /* ── History buttons ─── */
         .hist-btn {
           background: rgba(255,255,255,0.72); border: 1.5px solid ${palette.borderSoft}; cursor: pointer;
@@ -338,7 +387,7 @@ export default function App() {
           top: floater.top,
           background: floater.bg,
           animationDelay: `${floater.delay}s`,
-        } as React.CSSProperties}>
+        } as CSSProperties}>
         </div>
       ))}
 
@@ -412,16 +461,34 @@ export default function App() {
             <ShieldCheck size={13} color={palette.gold} />
             2FA Authenticator
           </div>
+          <p style={helperText}>
+            Paste a secret key, copy the code, then tap the clear button to start fresh right away.
+          </p>
 
           {/* Secret input */}
           <div style={{ position: "relative", marginBottom: 14 }}>
             <input
+              ref={secretInputRef}
               type="text"
               value={secret}
-              onChange={(e) => setSecret(e.target.value)}
+              onChange={(e) => {
+                setSecret(e.target.value);
+                if (copied2fa) setCopied2fa(false);
+              }}
               placeholder="Paste your 2FA secret key..."
               style={inputStyle}
             />
+            {secret && (
+              <button
+                type="button"
+                className="input-clear"
+                onClick={clearSecret}
+                aria-label="Clear 2FA secret"
+                style={{ ...inputClearButton, right: 40 }}
+              >
+                <X size={13} />
+              </button>
+            )}
             <Lock size={13} color={palette.saffron} style={{
               position: "absolute", right: 13, top: "50%",
               transform: "translateY(-50%)", pointerEvents: "none",
@@ -518,17 +585,37 @@ export default function App() {
             <UserSearch size={13} color={palette.jade} />
             UID Lookup
           </div>
+          <p style={helperText}>
+            Paste a Facebook link, look up the numeric ID, and clear the field in one tap for the next profile.
+          </p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
             <div style={{ position: "relative", flex: "1 1 200px" }}>
               <input
+                ref={fbUrlInputRef}
                 type="text"
                 value={fbUrl}
-                onChange={(e) => setFbUrl(e.target.value)}
+                onChange={(e) => {
+                  setFbUrl(e.target.value);
+                  if (uid) setUid("");
+                  if (errorUid) setErrorUid("");
+                  if (copiedUid) setCopiedUid(false);
+                }}
                 placeholder="Paste Facebook URL..."
-                style={{ ...inputStyle, paddingRight: 14 }}
+                style={inputStyle}
                 onKeyDown={(e) => e.key === "Enter" && lookupUid()}
               />
+              {fbUrl && (
+                <button
+                  type="button"
+                  className="input-clear"
+                  onClick={clearUidLookup}
+                  aria-label="Clear Facebook URL"
+                  style={{ ...inputClearButton, right: 13 }}
+                >
+                  <X size={13} />
+                </button>
+              )}
             </div>
             <button
               className="btn-primary"
@@ -713,7 +800,6 @@ export default function App() {
     </>
   );
 }
-
 
 
 
