@@ -461,9 +461,7 @@ export default function App() {
             <ShieldCheck size={13} color={palette.gold} />
             2FA Authenticator
           </div>
-          <p style={helperText}>
-            Paste a secret key, copy the code, then tap the clear button to start fresh right away.
-          </p>
+          
 
           {/* Secret input */}
           <div style={{ position: "relative", marginBottom: 14 }}>
@@ -585,9 +583,7 @@ export default function App() {
             <UserSearch size={13} color={palette.jade} />
             UID Lookup
           </div>
-          <p style={helperText}>
-            Paste a Facebook link, look up the numeric ID, and clear the field in one tap for the next profile.
-          </p>
+          
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
             <div style={{ position: "relative", flex: "1 1 200px" }}>
